@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lab Notebook</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#EEECE2;
+  --paper-card:#FBFAF4;
+  --ink:#20241F;
+  --muted:#6B6F60;
+  --line:#D8D3C0;
+  --grid: rgba(32,36,31,0.055);
+  --teal:#2F6F62;
+  --teal-dark:#204E44;
+  --rust:#A8442E;
+  --amber:#B8842A;
+  --sage:#4C7A3D;
+  --shadow: 0 1px 2px rgba(32,36,31,0.08), 0 4px 14px rgba(32,36,31,0.06);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:'IBM Plex Sans', sans-serif;
+  color:var(--ink);
+  background:var(--paper);
+}
+.app{display:flex; height:100vh; overflow:hidden;}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  width:290px; min-width:290px;
+  background:var(--paper-card);
+  border-right:1px solid var(--line);
+  display:flex; flex-direction:column;
+  padding:18px 14px;
+  overflow:hidden;
+}
+.brand{
+  font-family:'Source Serif 4', serif;
+  font-size:20px; font-weight:700;
+  letter-spacing:0.2px;
+  margin:2px 2px 2px;
+}
+.brand-sub{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px; color:var(--muted);
+  letter-spacing:0.5px; text-transform:uppercase;
+  margin:0 2px 16px;
+}
+.btn{
+  font-family:'IBM Plex Sans', sans-serif;
+  font-size:13px; font-weight:500;
+  border:1px solid var(--line);
+  background:var(--paper-card);
+  color:var(--ink);
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:background .12s, border-color .12s;
+}
+.btn:hover{background:var(--paper); border-color:var(--ink);}
+.btn-primary{
+  background:var(--teal); color:#fff; border-color:var(--teal);
+}
+.btn-primary:hover{background:var(--teal-dark); border-color:var(--teal-dark);}
+.btn-danger{color:var(--rust); border-color:var(--rust); background:transparent;}
+.btn-danger:hover{background:var(--rust); color:#fff;}
+.btn-block{width:100%;}
+.btn-sm{padding:5px 9px; font-size:12px;}
+
+.search-box{
+  margin:10px 0 8px;
+  position:relative;
+}
+.search-box input{
+  width:100%; padding:8px 10px;
+  font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  border:1px solid var(--line); border-radius:6px;
+  background:#fff; color:var(--ink);
+}
+.search-box input:focus{outline:2px solid var(--teal); outline-offset:1px;}
+
+.exp-list{
+  flex:1; overflow-y:auto; margin-top:6px;
+  display:flex; flex-direction:column; gap:8px;
+  padding-right:2px;
+}
+.exp-item{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:4px;
+  padding:9px 10px 9px 12px;
+  cursor:pointer;
+  position:relative;
+  transition:border-color .12s, transform .08s;
+}
+.exp-item:hover{border-color:var(--teal);}
+.exp-item.active{border-color:var(--teal); background:#F4FAF8; box-shadow:var(--shadow);}
+.exp-item .tag-num{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600; font-size:13px;
+  display:inline-block;
+  background:var(--amber); color:#fff;
+  padding:1px 7px;
+  border-radius:2px;
+  transform:rotate(-1.2deg);
+  box-shadow:var(--shadow);
+  margin-bottom:5px;
+}
+.exp-item .exp-title{
+  font-size:13px; font-weight:500; line-height:1.3;
+  margin-bottom:3px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.exp-item .exp-meta{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:10.5px; color:var(--muted);
+  display:flex; align-items:center; gap:6px;
+}
+.dot{width:7px; height:7px; border-radius:50%; display:inline-block;}
+.dot-planned{background:var(--amber);}
+.dot-running{background:var(--teal);}
+.dot-done{background:var(--sage);}
+.dot-failed{background:var(--rust);}
+
+.sidebar-empty{
+  color:var(--muted); font-size:12.5px; text-align:center;
+  padding:30px 10px; font-style:italic;
+}
+.sidebar-footer{
+  border-top:1px solid var(--line);
+  margin-top:10px; padding-top:10px;
+  display:flex; flex-direction:column; gap:6px;
+}
+
+/* ---------- MAIN ---------- */
+.main{
+  flex:1; overflow-y:auto;
+  background-image:
+    repeating-linear-gradient(0deg, var(--grid) 0px, var(--grid) 1px, transparent 1px, transparent 28px),
+    repeating-linear-gradient(90deg, var(--grid) 0px, var(--grid) 1px, transparent 1px, transparent 28px);
+  background-color:var(--paper);
+}
+.page{
+  max-width:880px; margin:0 auto;
+  padding:40px 44px 90px;
+}
+.no-selection{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:80vh; color:var(--muted); text-align:center; gap:14px;
+}
+.no-selection .glyph{font-size:40px; opacity:.5;}
+
+.page-header{
+  display:flex; align-items:flex-start; gap:18px; margin-bottom:22px;
+}
+.exp-label{
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:600; font-size:20px;
+  color:#fff; background:var(--amber);
+  padding:6px 14px;
+  border-radius:2px;
+  transform:rotate(-1.5deg);
+  box-shadow:var(--shadow);
+  white-space:nowrap;
+}
+.title-input{
+  font-family:'Source Serif 4', serif;
+  font-size:26px; font-weight:600;
+  border:none; background:transparent;
+  width:100%; padding:4px 2px;
+  border-bottom:2px solid transparent;
+}
+.title-input:focus{outline:none; border-bottom:2px solid var(--teal);}
+.title-input::placeholder{color:#B7B4A5;}
+
+.meta-row{
+  display:flex; flex-wrap:wrap; gap:10px; margin-bottom:26px;
+}
+.field-chip{
+  display:flex; flex-direction:column; gap:2px;
+  background:var(--paper-card); border:1px solid var(--line);
+  border-radius:6px; padding:6px 10px;
+}
+.field-chip label{
+  font-family:'IBM Plex Mono', monospace; font-size:9.5px;
+  text-transform:uppercase; letter-spacing:.5px; color:var(--muted);
+}
+.field-chip input, .field-chip select{
+  border:none; background:transparent; font-family:'IBM Plex Mono', monospace;
+  font-size:13px; color:var(--ink); padding:1px 0; min-width:90px;
+}
+.field-chip input:focus, .field-chip select:focus{outline:none;}
+
+.section{
+  margin-bottom:30px;
+}
+.section-title{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px; text-transform:uppercase; letter-spacing:1px;
+  color:var(--teal-dark); font-weight:600;
+  border-bottom:1px solid var(--line);
+  padding-bottom:6px; margin-bottom:12px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+
+/* scheme dropzone */
+.scheme-zone{
+  border:1.5px dashed var(--line);
+  border-radius:8px;
+  min-height:160px;
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:8px;
+  background:var(--paper-card);
+  cursor:pointer; position:relative;
+  padding:14px; text-align:center;
+  transition:border-color .12s, background .12s;
+}
+.scheme-zone.drag{border-color:var(--teal); background:#F2FAF7;}
+.scheme-zone img{max-width:100%; max-height:340px; border-radius:4px;}
+.scheme-hint{font-size:12.5px; color:var(--muted); max-width:400px; line-height:1.5;}
+.scheme-hint b{color:var(--ink);}
+.scheme-actions{position:absolute; top:8px; right:8px; display:flex; gap:6px;}
+
+/* reagent table */
+.rg-table-wrap{overflow-x:auto;}
+table.rg-table{
+  width:100%; border-collapse:collapse;
+  font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+}
+table.rg-table th{
+  text-align:left; font-weight:600; font-size:10px;
+  text-transform:uppercase; letter-spacing:.4px; color:var(--muted);
+  padding:4px 6px; border-bottom:1px solid var(--line);
+  white-space:nowrap;
+}
+table.rg-table td{
+  padding:3px 6px; border-bottom:1px solid var(--line);
+}
+table.rg-table input[type=text], table.rg-table input[type=number]{
+  width:100%; border:none; background:transparent;
+  font-family:'IBM Plex Mono', monospace; font-size:12.5px; padding:4px 2px;
+}
+table.rg-table input:focus{outline:1px solid var(--teal); border-radius:2px;}
+table.rg-table input[type=checkbox]{width:auto; cursor:pointer;}
+.rg-computed{color:var(--teal-dark); font-weight:600;}
+.rg-del-btn{
+  border:none; background:transparent; color:var(--rust);
+  cursor:pointer; font-size:13px; padding:2px 5px;
+}
+.rg-del-btn:hover{background:#fbeae6; border-radius:3px;}
+.add-row-btn{
+  margin-top:8px; font-family:'IBM Plex Mono', monospace;
+}
+
+/* conditions */
+.cond-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(140px,1fr));
+  gap:10px;
+}
+.cond-grid .field-chip{width:100%;}
+.cond-grid input{width:100%;}
+
+textarea.ruled{
+  width:100%; min-height:130px; resize:vertical;
+  font-family:'IBM Plex Sans', sans-serif; font-size:14px; line-height:28px;
+  border:1px solid var(--line); border-radius:6px;
+  padding:6px 12px;
+  background-image:repeating-linear-gradient(transparent, transparent 27px, var(--line) 28px);
+  background-attachment:local;
+}
+textarea.ruled:focus{outline:none; border-color:var(--teal);}
+
+.result-row{display:flex; gap:14px; flex-wrap:wrap; margin-bottom:10px;}
+
+.toolbar{
+  position:sticky; bottom:0; left:0; right:0;
+  background:var(--paper-card); border-top:1px solid var(--line);
+  padding:12px 44px; display:flex; gap:8px; align-items:center;
+  box-shadow:0 -4px 14px rgba(32,36,31,0.06);
+}
+.toolbar .spacer{flex:1;}
+.save-status{font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--muted);}
+
+/* modal */
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(32,36,31,0.4);
+  display:flex; align-items:center; justify-content:center; z-index:50;
+}
+.modal-overlay.hidden{display:none;}
+.modal{
+  background:#fff; border-radius:10px; width:560px; max-width:92vw;
+  max-height:85vh; overflow-y:auto; padding:22px 26px; box-shadow:var(--shadow);
+}
+.modal h3{font-family:'Source Serif 4', serif; margin:0 0 4px; font-size:20px;}
+.modal p.sub{color:var(--muted); font-size:12.5px; margin:0 0 16px;}
+.modal label{font-size:12px; font-weight:600; display:block; margin:12px 0 4px;}
+.modal input[type=date], .modal input[type=text]{
+  width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px;
+  font-family:'IBM Plex Mono', monospace; font-size:13px;
+}
+.modal .row2{display:flex; gap:10px;}
+.modal .row2 > div{flex:1;}
+.status-checks{display:flex; gap:12px; flex-wrap:wrap; margin-top:4px;}
+.status-checks label{display:flex; align-items:center; gap:5px; font-weight:400; font-size:12.5px; margin:0;}
+.recap-output{
+  width:100%; min-height:220px; margin-top:14px;
+  font-family:'IBM Plex Mono', monospace; font-size:12px;
+  border:1px solid var(--line); border-radius:6px; padding:10px;
+}
+.modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:14px;}
+.close-x{
+  position:absolute; top:14px; right:16px; cursor:pointer; font-size:18px; color:var(--muted);
+  background:none; border:none;
+}
+.modal{position:relative;}
+/* ---------- PRINT / PDF VIEW ---------- */
+.print-only{ display:none; }
+#printArea{
+  font-family:'Source Serif 4', serif;
+  color:#111; background:#fff;
+  max-width:760px; margin:0 auto; padding:0;
+}
+#printArea .p-head{
+  display:flex; justify-content:space-between; align-items:baseline;
+  border-bottom:2px solid #111; padding-bottom:8px; margin-bottom:14px;
+}
+#printArea .p-num{ font-family:'IBM Plex Mono', monospace; font-weight:700; font-size:20px; }
+#printArea .p-title{ font-size:19px; font-weight:600; margin:0 0 2px; }
+#printArea .p-date{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:#333; }
+#printArea .p-meta{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; color:#333;
+  display:flex; gap:16px; margin-bottom:16px; text-transform:uppercase; letter-spacing:.4px;
+}
+#printArea .p-section{ margin-bottom:16px; page-break-inside:avoid; }
+#printArea .p-section h4{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase;
+  letter-spacing:1px; border-bottom:1px solid #999; padding-bottom:3px; margin:0 0 8px;
+  font-weight:600; color:#111;
+}
+#printArea .p-body{ font-family:'IBM Plex Sans', sans-serif; font-size:13px; line-height:1.55; white-space:pre-wrap; }
+#printArea .p-scheme img{ max-width:100%; max-height:320px; display:block; margin:0 auto; }
+#printArea table.p-table{ width:100%; border-collapse:collapse; font-family:'IBM Plex Mono', monospace; font-size:11.5px; }
+#printArea table.p-table th, #printArea table.p-table td{ border:1px solid #999; padding:4px 6px; text-align:left; }
+#printArea table.p-table th{ background:#eee; font-size:9.5px; text-transform:uppercase; }
+#printArea .p-result-row{ display:flex; gap:24px; font-family:'IBM Plex Mono', monospace; font-size:12px; margin-bottom:6px; }
+#printArea .p-sign{
+  margin-top:36px; padding-top:14px; border-top:1px solid #999;
+  display:flex; gap:40px; font-family:'IBM Plex Mono', monospace; font-size:11px; color:#333;
+}
+#printArea .p-sign div{ flex:1; }
+#printArea .p-sign .line{ border-bottom:1px solid #111; height:28px; margin-bottom:4px; }
+
+@media print{
+  @page{ margin:18mm 16mm; }
+  body *{ visibility:hidden; }
+  #printArea, #printArea *{ visibility:visible; }
+  #printArea{ position:absolute; top:0; left:0; width:100%; display:block !important; }
+}
+
+.hint-banner{
+  font-size:12px; color:var(--muted); background:var(--paper-card);
+  border:1px solid var(--line); border-radius:6px; padding:8px 10px; margin-bottom:14px; line-height:1.5;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">Lab Notebook</div>
+    <div class="brand-sub">Electronic Ledger</div>
+    <div id="storageModeNote" style="font-size:10.5px; color:var(--muted); font-family:'IBM Plex Mono',monospace; line-height:1.5; margin-bottom:6px; cursor:pointer;" title="Click to configure GitHub sync"></div>
+    <button class="btn btn-block btn-sm" id="githubBtn" style="margin-bottom:10px;">⚡ GitHub sync settings</button>
+    <button class="btn btn-primary btn-block" id="newExpBtn">+ New experiment</button>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="search number, title, tag…">
+    </div>
+    <div class="exp-list" id="expList"></div>
+    <div class="sidebar-footer">
+      <button class="btn btn-block btn-sm" id="recapBtn">Recap for Claude</button>
+      <button class="btn btn-block btn-sm" id="backupBtn">Download backup (.json)</button>
+      <button class="btn btn-block btn-sm" id="importBtn">Import backup (.json)</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none">
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page" id="page"></div>
+  </main>
+
+</div>
+
+<div class="modal-overlay hidden" id="recapModal">
+  <div class="modal">
+    <button class="close-x" id="closeRecap">✕</button>
+    <h3>Recap for Claude</h3>
+    <p class="sub">Filter the experiments you want summarized, generate the text, then copy it into a chat with Claude for analysis. Claude does not read this notebook automatically — this is the bridge.</p>
+    <div class="row2">
+      <div>
+        <label>From date</label>
+        <input type="date" id="recapFrom">
+      </div>
+      <div>
+        <label>To date</label>
+        <input type="date" id="recapTo">
+      </div>
+    </div>
+    <label>Tag contains (optional)</label>
+    <input type="text" id="recapTag" placeholder="e.g. photoredox, spirocycle…">
+    <label>Status</label>
+    <div class="status-checks" id="recapStatus">
+      <label><input type="checkbox" value="planned" checked> Planned</label>
+      <label><input type="checkbox" value="running" checked> Running</label>
+      <label><input type="checkbox" value="done" checked> Done</label>
+      <label><input type="checkbox" value="failed" checked> Failed</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm" id="generateRecapBtn">Generate</button>
+      <button class="btn btn-sm btn-primary" id="copyRecapBtn">Copy to clipboard</button>
+    </div>
+    <textarea class="recap-output" id="recapOutput" placeholder="Markdown summary will appear here…"></textarea>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="githubModal">
+  <div class="modal">
+    <button class="close-x" id="closeGithub">✕</button>
+    <h3>GitHub sync</h3>
+    <p class="sub">Store experiments as JSON files in a private GitHub repo, so this notebook opens with the same data on any device. Your token is saved only in this browser and is sent directly to GitHub's API — it never passes through Claude.</p>
+    <div class="hint-banner">
+      <b>One-time setup:</b> create a private repo (e.g. <code>lab-notebook-data</code>), then create a fine-grained personal access token at github.com → Settings → Developer settings → Personal access tokens, scoped to <i>only that repo</i> with <b>Contents: Read and write</b> permission. Paste it below.
+    </div>
+    <label>Personal access token</label>
+    <input type="text" id="ghToken" placeholder="github_pat_…" autocomplete="off">
+    <div class="row2">
+      <div><label>Repo owner (username/org)</label><input type="text" id="ghOwner" placeholder="e.g. jsmith"></div>
+      <div><label>Repo name</label><input type="text" id="ghRepo" placeholder="e.g. lab-notebook-data"></div>
+    </div>
+    <div class="row2">
+      <div><label>Branch</label><input type="text" id="ghBranch" placeholder="main" value="main"></div>
+      <div><label>Folder</label><input type="text" id="ghFolder" placeholder="data" value="data"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-sm btn-danger" id="ghDisconnectBtn">Disconnect</button>
+      <button class="btn btn-sm" id="ghTestBtn">Test connection</button>
+      <button class="btn btn-sm btn-primary" id="ghConnectBtn">Save &amp; connect</button>
+    </div>
+    <div id="ghStatus" style="font-size:12px; margin-top:10px; font-family:'IBM Plex Mono',monospace;"></div>
+  </div>
+</div>
+
+<div id="printArea" class="print-only"></div>
+
+<script>
+(function(){
+  // ---------- Storage layer ----------
+  // Three possible backends, tried in this priority order:
+  //  1) GitHub — a private data repo, synced via the GitHub Contents API using
+  //     a personal access token you provide. Works from any device/browser.
+  //  2) Claude's own artifact storage — available only when this file runs
+  //     inside Claude's chat/artifact preview.
+  //  3) This browser's localStorage — used when neither of the above applies
+  //     (e.g. a downloaded file opened directly, with no GitHub configured).
+
+  const GH_CONFIG_KEY = 'labnotebook_gh_config';
+  function getGhConfig(){
+    try{ return JSON.parse(localStorage.getItem(GH_CONFIG_KEY) || 'null'); }
+    catch(e){ return null; }
+  }
+  function setGhConfig(cfg){ localStorage.setItem(GH_CONFIG_KEY, JSON.stringify(cfg)); }
+  function clearGhConfig(){ localStorage.removeItem(GH_CONFIG_KEY); }
+
+  // UTF-8 safe base64 helpers (plain btoa/atob break on µ, °, é, etc.)
+  function b64EncodeUnicode(str){
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    bytes.forEach(b => bin += String.fromCharCode(b));
+    return btoa(bin);
+  }
+  function b64DecodeUnicode(b64){
+    const bin = atob(b64.replace(/\n/g,''));
+    const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+  function sanitizeFilename(s){ return s.replace(/[^A-Za-z0-9_-]/g, '_'); }
+
+  function ghHeaders(cfg){
+    return {
+      'Authorization': `Bearer ${cfg.token}`,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'Content-Type': 'application/json'
+    };
+  }
+  function ghPath(cfg, filename){
+    return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${cfg.folder}/${filename}`;
+  }
+
+  const GitHubBackend = {
+    async get(filename){
+      const cfg = getGhConfig();
+      const res = await fetch(ghPath(cfg, filename)+`?ref=${cfg.branch}`, {headers: ghHeaders(cfg)});
+      if(res.status===404) return null;
+      if(!res.ok) throw new Error(`GitHub GET ${filename} failed: ${res.status}`);
+      const json = await res.json();
+      return {value: b64DecodeUnicode(json.content), sha: json.sha};
+    },
+    async set(filename, value){
+      const cfg = getGhConfig();
+      let sha;
+      try{ const existing = await this.get(filename); sha = existing ? existing.sha : undefined; }
+      catch(e){ /* proceed without sha; PUT will fail clearly if one was actually needed */ }
+      const res = await fetch(ghPath(cfg, filename), {
+        method:'PUT', headers: ghHeaders(cfg),
+        body: JSON.stringify({
+          message: `Update ${filename} — ${new Date().toISOString()}`,
+          content: b64EncodeUnicode(value),
+          branch: cfg.branch,
+          ...(sha ? {sha} : {})
+        })
+      });
+      if(!res.ok){ const t = await res.text(); throw new Error(`GitHub PUT ${filename} failed: ${res.status} ${t}`); }
+      return true;
+    },
+    async delete(filename){
+      const cfg = getGhConfig();
+      const existing = await this.get(filename);
+      if(!existing) return true;
+      const res = await fetch(ghPath(cfg, filename), {
+        method:'DELETE', headers: ghHeaders(cfg),
+        body: JSON.stringify({ message:`Delete ${filename}`, sha: existing.sha, branch: cfg.branch })
+      });
+      if(!res.ok) throw new Error(`GitHub DELETE ${filename} failed: ${res.status}`);
+      return true;
+    }
+  };
+
+  const LocalBackend = {
+    async get(filename){
+      const raw = localStorage.getItem('labnotebook:'+filename);
+      return raw===null ? null : {value: raw};
+    },
+    async set(filename, value){ localStorage.setItem('labnotebook:'+filename, value); return true; },
+    async delete(filename){ localStorage.removeItem('labnotebook:'+filename); return true; }
+  };
+
+  const ClaudeBackend = window.storage ? {
+    async get(filename){
+      try{ const r = await window.storage.get('exp:'+filename, false); return r ? {value:r.value} : null; }
+      catch(e){ return null; }
+    },
+    async set(filename, value){ return !!(await window.storage.set('exp:'+filename, value, false)); },
+    async delete(filename){ try{ await window.storage.delete('exp:'+filename, false); }catch(e){} return true; }
+  } : null;
+
+  function activeBackend(){
+    if(getGhConfig()) return 'github';
+    if(ClaudeBackend) return 'claude';
+    return 'local';
+  }
+  function backendImpl(){
+    const b = activeBackend();
+    return b==='github' ? GitHubBackend : (b==='claude' ? ClaudeBackend : LocalBackend);
+  }
+
+  // Store: unified key/value API used by the rest of the app. Keys are mapped
+  // to filenames "<key>.json" (GitHub/local) — Claude backend keeps its own
+  // "exp:" prefix internally, defined above.
+  const Store = {
+    async get(key){
+      const r = await backendImpl().get(key+'.json');
+      return r ? r.value : null;
+    },
+    async set(key, value){ return backendImpl().set(key+'.json', value); },
+    async delete(key){ return backendImpl().delete(key+'.json'); }
+  };
+
+  async function testGithubConnection(cfg){
+    const res = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, {headers: ghHeaders(cfg)});
+    if(res.status===404) throw new Error('Repo not found — check owner/repo name, and make sure the token has access to it.');
+    if(res.status===401) throw new Error('Bad token — check the personal access token.');
+    if(!res.ok) throw new Error(`GitHub error: ${res.status}`);
+    return true;
+  }
+
+  let index = [];          // [{number,title,date,status,tags:[]}]
+  let current = null;      // full experiment object currently loaded
+  let dirty = false;
+
+  const expList = document.getElementById('expList');
+  const page = document.getElementById('page');
+  const searchInput = document.getElementById('searchInput');
+
+  function blankExperiment(number){
+    return {
+      number, date:new Date().toISOString().slice(0,10), title:'',
+      status:'planned', tags:'',
+      schemeImage:null,
+      objective:'',
+      reagents:[blankReagent()],
+      solvent:'', concentration:'', temp:'', atmosphere:'', time:'',
+      procedure:'', observations:'',
+      resultDate:'', yieldPct:'', results:''
+    };
+  }
+  function blankReagent(){
+    return {name:'', mw:'', mass:'', vol:'', dens:'', ref:false, notes:''};
+  }
+
+  function suggestNextNumber(){
+    if(index.length===0) return 'EXP-001';
+    const last = index[index.length-1].number;
+    const m = last.match(/^(.*?)(\d+)$/);
+    if(m){
+      const prefix=m[1], digits=m[2];
+      const next=(parseInt(digits,10)+1).toString().padStart(digits.length,'0');
+      return prefix+next;
+    }
+    return last+'-2';
+  }
+
+  async function loadIndex(){
+    try{
+      const raw = await Store.get('index');
+      index = raw ? JSON.parse(raw) : [];
+    }catch(e){ console.error('index load failed', e); index = []; }
+    renderList();
+  }
+  async function saveIndex(){
+    try{ await Store.set('index', JSON.stringify(index)); }
+    catch(e){ console.error('index save failed', e); throw e; }
+  }
+  function upsertIndexEntry(exp){
+    const entry = {number:exp.number, title:exp.title, date:exp.date, status:exp.status, tags:exp.tags};
+    const i = index.findIndex(e=>e.number===exp.number);
+    if(i>=0) index[i]=entry; else index.push(entry);
+    index.sort((a,b)=> a.number.localeCompare(b.number, undefined, {numeric:true}));
+  }
+  function removeIndexEntry(number){
+    index = index.filter(e=>e.number!==number);
+  }
+
+  async function loadExperiment(number){
+    try{
+      const raw = await Store.get(sanitizeFilename(number));
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ console.error('experiment load failed', e); return null; }
+  }
+  async function saveExperiment(exp){
+    try{
+      await Store.set(sanitizeFilename(exp.number), JSON.stringify(exp));
+      upsertIndexEntry(exp);
+      await saveIndex();
+      return true;
+    }catch(e){ console.error('save failed', e); return false; }
+  }
+  async function deleteExperiment(number){
+    try{ await Store.delete(sanitizeFilename(number)); }catch(e){}
+    removeIndexEntry(number);
+    await saveIndex();
+  }
+
+  function statusDotClass(s){ return 'dot-'+(s||'planned'); }
+
+  function renderList(){
+    const q = searchInput.value.trim().toLowerCase();
+    expList.innerHTML='';
+    let items = index.slice().reverse();
+    if(q){
+      items = items.filter(e =>
+        e.number.toLowerCase().includes(q) ||
+        (e.title||'').toLowerCase().includes(q) ||
+        (e.tags||'').toLowerCase().includes(q)
+      );
+    }
+    if(items.length===0){
+      expList.innerHTML = '<div class="sidebar-empty">No experiments yet.<br>Click "+ New experiment" to start your first entry.</div>';
+      return;
+    }
+    items.forEach(e=>{
+      const div=document.createElement('div');
+      div.className='exp-item'+(current && current.number===e.number ? ' active':'');
+      div.innerHTML = `
+        <span class="tag-num">${escapeHtml(e.number)}</span>
+        <div class="exp-title">${escapeHtml(e.title||'(untitled)')}</div>
+        <div class="exp-meta"><span class="dot ${statusDotClass(e.status)}"></span> ${e.date||''}</div>
+      `;
+      div.onclick = ()=> openExperiment(e.number);
+      expList.appendChild(div);
+    });
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function openExperiment(number){
+    if(dirty){
+      const ok = confirm('You have unsaved changes on the current entry. Discard them and switch?');
+      if(!ok) return;
+    }
+    const exp = await loadExperiment(number);
+    current = exp || blankExperiment(number);
+    dirty = false;
+    renderList();
+    renderPage();
+  }
+
+  document.getElementById('newExpBtn').onclick = ()=>{
+    if(dirty && current){
+      const ok = confirm('Discard unsaved changes on the current entry?');
+      if(!ok) return;
+    }
+    const number = prompt('Experiment number', suggestNextNumber());
+    if(!number) return;
+    if(index.some(e=>e.number===number)){
+      alert('That experiment number already exists. Open it from the list instead, or choose a different number.');
+      return;
+    }
+    current = blankExperiment(number);
+    dirty = true;
+    renderList();
+    renderPage();
+  };
+
+  searchInput.oninput = renderList;
+
+  function markDirty(){ dirty = true; updateSaveStatus(); }
+
+  function updateSaveStatus(){
+    const el = document.getElementById('saveStatus');
+    if(!el) return;
+    el.textContent = dirty ? 'Unsaved changes' : 'Saved';
+    el.style.color = dirty ? 'var(--rust)' : 'var(--muted)';
+  }
+
+  function computeReagentDerived(r, refMmol){
+    const mass = (r.vol && r.dens) ? (parseFloat(r.vol)*parseFloat(r.dens)) : parseFloat(r.mass);
+    const mw = parseFloat(r.mw);
+    const mmol = (mass>0 && mw>0) ? (mass/mw) : null;
+    const eq = (mmol!=null && refMmol) ? (mmol/refMmol) : null;
+    return {mmol, eq};
+  }
+  function getRefMmol(){
+    const refRow = current.reagents.find(r=>r.ref);
+    if(!refRow) return null;
+    const d = computeReagentDerived(refRow, null);
+    return d.mmol;
+  }
+
+  function renderPage(){
+    if(!current){
+      page.innerHTML = `<div class="no-selection"><div class="glyph">⚗</div><div>Select an experiment from the ledger,<br>or start a new entry.</div></div>`;
+      return;
+    }
+    const exp = current;
+    page.innerHTML = `
+      <div class="page-header">
+        <span class="exp-label">${escapeHtml(exp.number)}</span>
+        <input class="title-input" id="f-title" placeholder="Reaction title / short name" value="${escapeHtml(exp.title)}">
+      </div>
+
+      <div class="meta-row">
+        <div class="field-chip"><label>Date</label><input type="date" id="f-date" value="${exp.date||''}"></div>
+        <div class="field-chip"><label>Status</label>
+          <select id="f-status">
+            <option value="planned">Planned</option>
+            <option value="running">Running</option>
+            <option value="done">Done</option>
+            <option value="failed">Failed</option>
+          </select>
+        </div>
+        <div class="field-chip" style="flex:1; min-width:200px;"><label>Tags (comma-separated)</label><input type="text" id="f-tags" value="${escapeHtml(exp.tags)}" placeholder="photoredox, cyclization…"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Reaction scheme</div>
+        <div class="scheme-zone" id="schemeZone" tabindex="0">
+          ${exp.schemeImage ? `<img src="${exp.schemeImage}" id="schemeImg">
+             <div class="scheme-actions"><button class="btn btn-sm" id="clearScheme">Remove</button></div>`
+           : `<div class="scheme-hint"><b>Click here and paste (Ctrl/Cmd+V)</b> a structure copied from ChemDraw — or drag &amp; drop / choose an image file below.<br>Native .cdx / .cdxml files can't be parsed in-browser; copy the scheme as an image from ChemDraw first.</div>
+              <input type="file" accept="image/*" id="schemeFile" style="font-size:12px;">`}
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Objective</div>
+        <textarea class="ruled" id="f-objective" style="min-height:60px;" placeholder="What is this experiment testing / trying to achieve?">${exp.objective}</textarea>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Reagents &amp; equivalents<button class="btn btn-sm add-row-btn" id="addRow">+ Add reagent</button></div>
+        <div class="rg-table-wrap">
+          <table class="rg-table">
+            <thead><tr>
+              <th>Ref</th><th>Reagent</th><th>MW (g/mol)</th><th>Mass (mg)</th><th>Vol (µL)</th><th>d (g/mL)</th><th>mmol</th><th>Eq.</th><th>Notes</th><th></th>
+            </tr></thead>
+            <tbody id="rgBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Conditions</div>
+        <div class="cond-grid">
+          <div class="field-chip"><label>Solvent</label><input type="text" id="f-solvent" value="${escapeHtml(exp.solvent)}"></div>
+          <div class="field-chip"><label>Conc. (M)</label><input type="text" id="f-conc" value="${escapeHtml(exp.concentration)}"></div>
+          <div class="field-chip"><label>Temp (°C)</label><input type="text" id="f-temp" value="${escapeHtml(exp.temp)}"></div>
+          <div class="field-chip"><label>Atmosphere</label><input type="text" id="f-atm" value="${escapeHtml(exp.atmosphere)}" placeholder="N2, Ar, air…"></div>
+          <div class="field-chip"><label>Time</label><input type="text" id="f-time" value="${escapeHtml(exp.time)}" placeholder="e.g. 16 h"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Experimental procedure</div>
+        <textarea class="ruled" id="f-procedure" placeholder="Step-by-step procedure as performed…">${exp.procedure}</textarea>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Observations / monitoring</div>
+        <textarea class="ruled" id="f-observations" style="min-height:80px;" placeholder="TLC, colour changes, in-process checks…">${exp.observations}</textarea>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Result</div>
+        <div class="result-row">
+          <div class="field-chip"><label>Result date</label><input type="date" id="f-resultdate" value="${exp.resultDate||''}"></div>
+          <div class="field-chip"><label>Yield (%)</label><input type="text" id="f-yield" value="${escapeHtml(exp.yieldPct)}"></div>
+        </div>
+        <textarea class="ruled" id="f-results" placeholder="Isolated yield, purity, characterization summary, conclusions…">${exp.results}</textarea>
+      </div>
+    `;
+
+    document.getElementById('f-status').value = exp.status||'planned';
+
+    // wire meta fields
+    bind('f-title','title'); bind('f-date','date'); bind('f-tags','tags');
+    document.getElementById('f-status').onchange = e=>{exp.status=e.target.value; markDirty();};
+    bind('f-objective','objective'); bind('f-solvent','solvent'); bind('f-conc','concentration');
+    bind('f-temp','temp'); bind('f-atm','atmosphere'); bind('f-time','time');
+    bind('f-procedure','procedure'); bind('f-observations','observations');
+    bind('f-resultdate','resultDate'); bind('f-yield','yieldPct'); bind('f-results','results');
+
+    function bind(id, field){
+      const el = document.getElementById(id);
+      el.oninput = ()=>{ exp[field]=el.value; markDirty(); };
+    }
+
+    renderReagents();
+    document.getElementById('addRow').onclick = ()=>{
+      exp.reagents.push(blankReagent());
+      renderReagents(); markDirty();
+    };
+
+    // scheme zone
+    const zone = document.getElementById('schemeZone');
+    zone.onclick = ()=> zone.focus();
+    zone.addEventListener('paste', handlePaste);
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('drag'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('drag');
+      const f = e.dataTransfer.files[0];
+      if(f && f.type.startsWith('image/')) readImageFile(f);
+    });
+    const fileInput = document.getElementById('schemeFile');
+    if(fileInput) fileInput.onchange = e=>{
+      const f = e.target.files[0];
+      if(f) readImageFile(f);
+    };
+    const clearBtn = document.getElementById('clearScheme');
+    if(clearBtn) clearBtn.onclick = ()=>{ exp.schemeImage=null; markDirty(); renderPage(); };
+
+    function handlePaste(e){
+      const items = (e.clipboardData || window.clipboardData).items;
+      for(const item of items){
+        if(item.type.startsWith('image/')){
+          const blob = item.getAsFile();
+          readImageBlob(blob);
+          e.preventDefault();
+          return;
+        }
+      }
+    }
+    function readImageFile(file){ readImageBlob(file); }
+    function readImageBlob(blob){
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        exp.schemeImage = reader.result;
+        markDirty();
+        renderPage();
+      };
+      reader.readAsDataURL(blob);
+    }
+
+    updateSaveStatus();
+  }
+
+  function renderReagents(){
+    const exp = current;
+    const body = document.getElementById('rgBody');
+    body.innerHTML='';
+    const refMmol = getRefMmol();
+    exp.reagents.forEach((r, idx)=>{
+      const tr = document.createElement('tr');
+      const derived = computeReagentDerived(r, refMmol);
+      tr.innerHTML = `
+        <td style="text-align:center;"><input type="checkbox" ${r.ref?'checked':''} data-f="ref"></td>
+        <td><input type="text" value="${escapeHtml(r.name)}" data-f="name" placeholder="e.g. NBS"></td>
+        <td><input type="number" value="${r.mw}" data-f="mw"></td>
+        <td><input type="number" value="${r.mass}" data-f="mass" ${(r.vol&&r.dens)?'disabled':''}></td>
+        <td><input type="number" value="${r.vol}" data-f="vol"></td>
+        <td><input type="number" value="${r.dens}" data-f="dens"></td>
+        <td class="rg-computed">${derived.mmol!=null? derived.mmol.toFixed(3):'—'}</td>
+        <td class="rg-computed">${derived.eq!=null? derived.eq.toFixed(2):(r.ref?'1.00':'—')}</td>
+        <td><input type="text" value="${escapeHtml(r.notes)}" data-f="notes" placeholder="notes"></td>
+        <td><button class="rg-del-btn" title="remove row">✕</button></td>
+      `;
+      tr.querySelectorAll('input').forEach(inp=>{
+        inp.addEventListener('input', ()=>{
+          const f = inp.dataset.f;
+          if(inp.type==='checkbox'){
+            if(f==='ref'){ exp.reagents.forEach(rr=>rr.ref=false); r.ref = inp.checked; }
+          } else {
+            r[f]=inp.value;
+          }
+          markDirty();
+          renderReagents();
+        });
+      });
+      tr.querySelector('.rg-del-btn').onclick = ()=>{
+        exp.reagents.splice(idx,1);
+        if(exp.reagents.length===0) exp.reagents.push(blankReagent());
+        markDirty(); renderReagents();
+      };
+      body.appendChild(tr);
+    });
+  }
+
+  // toolbar (appended once, lives outside re-rendered page via fixed position through CSS 'sticky' inside page flow)
+  function ensureToolbar(){
+    let tb = document.getElementById('toolbar');
+    if(tb) return tb;
+    tb = document.createElement('div');
+    tb.className='toolbar'; tb.id='toolbar';
+    tb.innerHTML = `
+      <button class="btn btn-primary" id="saveBtn">Save entry</button>
+      <button class="btn" id="dupBtn">Duplicate</button>
+      <button class="btn" id="printBtn">Print / Save as PDF</button>
+      <button class="btn btn-danger" id="delBtn">Delete</button>
+      <div class="spacer"></div>
+      <span class="save-status" id="saveStatus">Saved</span>
+    `;
+    document.querySelector('.main').appendChild(tb);
+    document.getElementById('saveBtn').onclick = onSave;
+    document.getElementById('dupBtn').onclick = onDuplicate;
+    document.getElementById('printBtn').onclick = onPrint;
+    document.getElementById('delBtn').onclick = onDelete;
+    return tb;
+  }
+  ensureToolbar();
+
+  function escapeAttr(s){ return escapeHtml(s); }
+
+  function reagentDerivedForPrint(exp){
+    const refRow = exp.reagents.find(r=>r.ref);
+    let refMmol = null;
+    if(refRow){
+      const mass = (refRow.vol && refRow.dens) ? (parseFloat(refRow.vol)*parseFloat(refRow.dens)) : parseFloat(refRow.mass);
+      const mw = parseFloat(refRow.mw);
+      refMmol = (mass>0 && mw>0) ? mass/mw : null;
+    }
+    return exp.reagents.filter(r=>r.name).map(r=>{
+      const mass = (r.vol && r.dens) ? (parseFloat(r.vol)*parseFloat(r.dens)) : parseFloat(r.mass);
+      const mw = parseFloat(r.mw);
+      const mmol = (mass>0 && mw>0) ? mass/mw : null;
+      const eq = r.ref ? 1 : (mmol!=null && refMmol ? mmol/refMmol : null);
+      return {
+        name:r.name, mw:r.mw||'—',
+        amount: r.vol ? `${r.vol} µL` : (r.mass ? `${r.mass} mg` : '—'),
+        mmol: mmol!=null? mmol.toFixed(3) : '—',
+        eq: eq!=null? eq.toFixed(2)+(r.ref?' (ref)':'') : (r.ref?'1.00 (ref)':'—'),
+        notes: r.notes||''
+      };
+    });
+  }
+
+  function buildPrintHTML(exp){
+    const rows = reagentDerivedForPrint(exp);
+    const statusLabel = {planned:'Planned', running:'Running', done:'Done', failed:'Failed'}[exp.status] || exp.status;
+    let html = `
+      <div class="p-head">
+        <div>
+          <div class="p-title">${escapeHtml(exp.title||'(untitled experiment)')}</div>
+          <div class="p-date">${exp.date||''}${exp.tags? '  ·  '+escapeHtml(exp.tags):''}  ·  ${statusLabel}</div>
+        </div>
+        <div class="p-num">${escapeHtml(exp.number)}</div>
+      </div>
+    `;
+    if(exp.objective){
+      html += `<div class="p-section"><h4>Objective</h4><div class="p-body">${escapeHtml(exp.objective)}</div></div>`;
+    }
+    if(exp.schemeImage){
+      html += `<div class="p-section p-scheme"><h4>Reaction scheme</h4><img src="${exp.schemeImage}"></div>`;
+    }
+    if(rows.length){
+      html += `<div class="p-section"><h4>Reagents &amp; equivalents</h4>
+        <table class="p-table"><thead><tr><th>Reagent</th><th>MW</th><th>Amount</th><th>mmol</th><th>Eq.</th><th>Notes</th></tr></thead><tbody>
+        ${rows.map(r=>`<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.mw)}</td><td>${escapeHtml(r.amount)}</td><td>${r.mmol}</td><td>${r.eq}</td><td>${escapeHtml(r.notes)}</td></tr>`).join('')}
+        </tbody></table></div>`;
+    }
+    const conds = [
+      exp.solvent && `Solvent: ${exp.solvent}`,
+      exp.concentration && `Conc.: ${exp.concentration} M`,
+      exp.temp && `Temp.: ${exp.temp} °C`,
+      exp.atmosphere && `Atmosphere: ${exp.atmosphere}`,
+      exp.time && `Time: ${exp.time}`
+    ].filter(Boolean).join('   |   ');
+    if(conds){
+      html += `<div class="p-section"><h4>Conditions</h4><div class="p-body">${escapeHtml(conds)}</div></div>`;
+    }
+    if(exp.procedure){
+      html += `<div class="p-section"><h4>Experimental procedure</h4><div class="p-body">${escapeHtml(exp.procedure)}</div></div>`;
+    }
+    if(exp.observations){
+      html += `<div class="p-section"><h4>Observations / monitoring</h4><div class="p-body">${escapeHtml(exp.observations)}</div></div>`;
+    }
+    if(exp.results || exp.yieldPct){
+      html += `<div class="p-section"><h4>Result</h4>
+        <div class="p-result-row"><span>Result date: ${exp.resultDate||'—'}</span><span>Yield: ${exp.yieldPct? exp.yieldPct+' %':'—'}</span></div>
+        <div class="p-body">${escapeHtml(exp.results)}</div></div>`;
+    }
+    html += `
+      <div class="p-sign">
+        <div><div class="line"></div>Recorded by / date</div>
+        <div><div class="line"></div>Witnessed by / date</div>
+      </div>
+    `;
+    return html;
+  }
+
+  function onPrint(){
+    if(!current){ alert('Select or create an experiment first.'); return; }
+    if(dirty){
+      const proceed = confirm('You have unsaved changes. Save before printing so the PDF matches what\'s stored?');
+      if(proceed){ onSave(); }
+    }
+    document.getElementById('printArea').innerHTML = buildPrintHTML(current);
+    // give the browser a tick to lay out the image before opening the print dialog
+    setTimeout(()=> window.print(), 80);
+  }
+
+  async function onSave(){
+    if(!current) return;
+    if(!current.title){
+      const proceed = confirm('This entry has no title. Save anyway?');
+      if(!proceed) return;
+    }
+    const ok = await saveExperiment(current);
+    if(ok){ dirty=false; updateSaveStatus(); renderList(); }
+    else alert('Save failed — storage error. Try again.');
+  }
+  async function onDuplicate(){
+    if(!current) return;
+    const number = prompt('New experiment number for the duplicate', suggestNextNumber());
+    if(!number) return;
+    if(index.some(e=>e.number===number)){ alert('That number already exists.'); return; }
+    const copy = JSON.parse(JSON.stringify(current));
+    copy.number = number;
+    copy.status = 'planned';
+    copy.resultDate=''; copy.results=''; copy.yieldPct='';
+    current = copy; dirty = true;
+    renderList(); renderPage();
+  }
+  async function onDelete(){
+    if(!current) return;
+    if(!confirm(`Delete experiment ${current.number}? This cannot be undone.`)) return;
+    await deleteExperiment(current.number);
+    current = null; dirty=false;
+    renderList(); renderPage();
+  }
+
+  window.addEventListener('beforeunload', (e)=>{
+    if(dirty){ e.preventDefault(); e.returnValue=''; }
+  });
+
+  // ---------- Recap modal ----------
+  const recapModal = document.getElementById('recapModal');
+  document.getElementById('recapBtn').onclick = ()=> recapModal.classList.remove('hidden');
+  document.getElementById('closeRecap').onclick = ()=> recapModal.classList.add('hidden');
+
+  document.getElementById('generateRecapBtn').onclick = async ()=>{
+    const from = document.getElementById('recapFrom').value;
+    const to = document.getElementById('recapTo').value;
+    const tag = document.getElementById('recapTag').value.trim().toLowerCase();
+    const checked = Array.from(document.querySelectorAll('#recapStatus input:checked')).map(c=>c.value);
+
+    let matches = index.filter(e=>{
+      if(from && e.date < from) return false;
+      if(to && e.date > to) return false;
+      if(tag && !(e.tags||'').toLowerCase().includes(tag)) return false;
+      if(!checked.includes(e.status||'planned')) return false;
+      return true;
+    });
+
+    const out = document.getElementById('recapOutput');
+    if(matches.length===0){ out.value = '(No experiments match those filters.)'; return; }
+
+    out.value = 'Loading…';
+    let md = `# Lab notebook recap\n\nGenerated ${new Date().toISOString().slice(0,10)} — ${matches.length} experiment(s)\n\n`;
+    for(const m of matches){
+      const exp = await loadExperiment(m.number);
+      if(!exp) continue;
+      md += `## ${exp.number} — ${exp.title||'(untitled)'}\n`;
+      md += `- Date: ${exp.date||'—'} | Status: ${exp.status} | Tags: ${exp.tags||'—'}\n`;
+      if(exp.objective) md += `- Objective: ${exp.objective}\n`;
+      if(exp.reagents && exp.reagents.length){
+        const refMmol = (()=>{ const r=exp.reagents.find(x=>x.ref); if(!r) return null;
+          const mass=(r.vol&&r.dens)?(parseFloat(r.vol)*parseFloat(r.dens)):parseFloat(r.mass);
+          const mw=parseFloat(r.mw); return (mass>0&&mw>0)? mass/mw : null; })();
+        md += `- Reagents:\n`;
+        exp.reagents.forEach(r=>{
+          if(!r.name) return;
+          const mass=(r.vol&&r.dens)?(parseFloat(r.vol)*parseFloat(r.dens)):parseFloat(r.mass);
+          const mw=parseFloat(r.mw);
+          const mmol=(mass>0&&mw>0)?mass/mw:null;
+          const eq = r.ref ? 1 : (mmol!=null && refMmol ? (mmol/refMmol) : null);
+          md += `  - ${r.name}${r.mw?` (MW ${r.mw})`:''}${mmol!=null?`, ${mmol.toFixed(3)} mmol`:''}${eq!=null?`, ${eq.toFixed(2)} eq`:''}${r.ref?' [reference/limiting]':''}${r.notes?` — ${r.notes}`:''}\n`;
+        });
+      }
+      const conds = [exp.solvent && `solvent ${exp.solvent}`, exp.concentration && `${exp.concentration} M`, exp.temp && `${exp.temp} °C`, exp.atmosphere && exp.atmosphere, exp.time && exp.time].filter(Boolean).join(', ');
+      if(conds) md += `- Conditions: ${conds}\n`;
+      if(exp.procedure) md += `- Procedure: ${exp.procedure}\n`;
+      if(exp.observations) md += `- Observations: ${exp.observations}\n`;
+      if(exp.results || exp.yieldPct){
+        md += `- Result (${exp.resultDate||'no date'}): ${exp.yieldPct? exp.yieldPct+'% yield. ':''}${exp.results||''}\n`;
+      }
+      md += `\n`;
+    }
+    out.value = md;
+  };
+
+  document.getElementById('copyRecapBtn').onclick = ()=>{
+    const out = document.getElementById('recapOutput');
+    out.select();
+    navigator.clipboard.writeText(out.value).then(()=>{
+      const btn = document.getElementById('copyRecapBtn');
+      const old = btn.textContent; btn.textContent='Copied ✓';
+      setTimeout(()=>btn.textContent=old, 1400);
+    }).catch(()=>{ alert('Could not copy automatically — select the text and copy manually.'); });
+  };
+
+  // ---------- Backup / restore ----------
+  document.getElementById('backupBtn').onclick = async ()=>{
+    const all = [];
+    for(const e of index){
+      const exp = await loadExperiment(e.number);
+      if(exp) all.push(exp);
+    }
+    const blob = new Blob([JSON.stringify(all, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `lab-notebook-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  document.getElementById('importBtn').onclick = ()=> document.getElementById('importFile').click();
+  document.getElementById('importFile').onchange = async (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const arr = JSON.parse(text);
+      if(!Array.isArray(arr)) throw new Error('not an array');
+      let imported=0, skipped=0;
+      for(const exp of arr){
+        if(!exp.number){ skipped++; continue; }
+        if(index.some(e=>e.number===exp.number)){
+          const overwrite = confirm(`Experiment ${exp.number} already exists. Overwrite it?`);
+          if(!overwrite){ skipped++; continue; }
+        }
+        await saveExperiment(exp);
+        imported++;
+      }
+      alert(`Import complete: ${imported} imported, ${skipped} skipped.`);
+      renderList();
+    }catch(err){
+      alert('Could not read that file as a valid backup JSON.');
+    }
+    e.target.value='';
+  };
+
+  // ---------- GitHub settings modal ----------
+  const githubModal = document.getElementById('githubModal');
+  function openGithubModal(){
+    const cfg = getGhConfig();
+    document.getElementById('ghToken').value = cfg ? cfg.token : '';
+    document.getElementById('ghOwner').value = cfg ? cfg.owner : '';
+    document.getElementById('ghRepo').value = cfg ? cfg.repo : '';
+    document.getElementById('ghBranch').value = cfg ? cfg.branch : 'main';
+    document.getElementById('ghFolder').value = cfg ? cfg.folder : 'data';
+    document.getElementById('ghStatus').textContent = '';
+    githubModal.classList.remove('hidden');
+  }
+  document.getElementById('githubBtn').onclick = openGithubModal;
+  document.getElementById('storageModeNote').onclick = openGithubModal;
+  document.getElementById('closeGithub').onclick = ()=> githubModal.classList.add('hidden');
+
+  function readGhForm(){
+    return {
+      token: document.getElementById('ghToken').value.trim(),
+      owner: document.getElementById('ghOwner').value.trim(),
+      repo: document.getElementById('ghRepo').value.trim(),
+      branch: document.getElementById('ghBranch').value.trim() || 'main',
+      folder: document.getElementById('ghFolder').value.trim() || 'data'
+    };
+  }
+
+  document.getElementById('ghTestBtn').onclick = async ()=>{
+    const cfg = readGhForm();
+    const statusEl = document.getElementById('ghStatus');
+    if(!cfg.token || !cfg.owner || !cfg.repo){ statusEl.textContent='Fill in token, owner, and repo first.'; statusEl.style.color='var(--rust)'; return; }
+    statusEl.textContent = 'Testing…'; statusEl.style.color='var(--muted)';
+    try{
+      await testGithubConnection(cfg);
+      statusEl.textContent = '✓ Connected — repo found and token is valid.';
+      statusEl.style.color = 'var(--sage)';
+    }catch(e){
+      statusEl.textContent = '✕ '+e.message;
+      statusEl.style.color = 'var(--rust)';
+    }
+  };
+
+  document.getElementById('ghConnectBtn').onclick = async ()=>{
+    const cfg = readGhForm();
+    const statusEl = document.getElementById('ghStatus');
+    if(!cfg.token || !cfg.owner || !cfg.repo){ statusEl.textContent='Fill in token, owner, and repo first.'; statusEl.style.color='var(--rust)'; return; }
+    statusEl.textContent = 'Connecting…'; statusEl.style.color='var(--muted)';
+    try{
+      await testGithubConnection(cfg);
+      setGhConfig(cfg);
+      // ensure an index.json exists so the folder/repo is initialized
+      const existing = await GitHubBackend.get('index.json');
+      if(!existing){ await GitHubBackend.set('index.json', '[]'); }
+      statusEl.textContent = '✓ Connected. Reloading notebook from GitHub…';
+      statusEl.style.color = 'var(--sage)';
+      setTimeout(()=>{ githubModal.classList.add('hidden'); current=null; refreshModeNote(); loadIndex().then(renderPage); }, 700);
+    }catch(e){
+      statusEl.textContent = '✕ '+e.message;
+      statusEl.style.color = 'var(--rust)';
+    }
+  };
+
+  document.getElementById('ghDisconnectBtn').onclick = ()=>{
+    if(!confirm('Disconnect GitHub sync? Your data stays in the repo — this only stops this browser from using it.')) return;
+    clearGhConfig();
+    githubModal.classList.add('hidden');
+    current = null;
+    refreshModeNote();
+    loadIndex().then(renderPage);
+  };
+
+  function refreshModeNote(){
+    const modeNote = document.getElementById('storageModeNote');
+    if(!modeNote) return;
+    const b = activeBackend();
+    const cfg = getGhConfig();
+    if(b==='github'){
+      modeNote.textContent = `⚡ GitHub: ${cfg.owner}/${cfg.repo}`;
+    } else if(b==='claude'){
+      modeNote.textContent = '☁ Saved to your Claude account.';
+    } else {
+      modeNote.textContent = '💾 This browser only. Back up regularly, or connect GitHub →';
+    }
+  }
+
+  refreshModeNote();
+  loadIndex().then(renderPage);
+})();
+</script>
+</body>
+</html>
